@@ -10,12 +10,22 @@ let currentQuote = '';
 let timer = 0;
 let interval = null;
 let isRunning = false;
+let startBtn = null;
+let stopBtn = null;
+let resetBtn = null;
 
 const quoteEl = document.getElementById('quote');
 const inputEl = document.getElementById('input');
 const timeEl = document.getElementById('time');
 const wpmEl = document.getElementById('wpm');
 const accuracyEl = document.getElementById('accuracy');
+
+// Button elements will be resolved on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+  startBtn = document.getElementById('startBtn');
+  stopBtn = document.getElementById('stopBtn');
+  resetBtn = document.getElementById('resetBtn');
+});
 
 function getRandomQuote() {
   return quotes[Math.floor(Math.random() * quotes.length)];
@@ -40,6 +50,8 @@ function startTest() {
   }, 1000);
 
   isRunning = true;
+  if (startBtn) startBtn.disabled = true;
+  if (stopBtn) stopBtn.disabled = false;
 }
 
 function resetTest() {
@@ -53,6 +65,8 @@ function resetTest() {
   timeEl.textContent = '0';
   wpmEl.textContent = '0';
   accuracyEl.textContent = '0';
+  if (startBtn) startBtn.disabled = false;
+  if (stopBtn) stopBtn.disabled = true;
 }
 
 inputEl.addEventListener('input', () => {
@@ -62,19 +76,44 @@ inputEl.addEventListener('input', () => {
   const quoteText = currentQuote;
 
   if (userText === quoteText) {
-    clearInterval(interval);
-    isRunning = false;
-
-    const words = quoteText.split(' ').length;
-    const minutes = timer / 60;
-    const wpm = Math.round(words / minutes);
-    const correctChars = getCorrectCharacters(userText, quoteText);
-    const accuracy = Math.round((correctChars / quoteText.length) * 100);
-
-    wpmEl.textContent = isFinite(wpm) ? wpm : '0';
-    accuracyEl.textContent = accuracy;
+    // User finished typing the quote exactly
+    endTest();
   }
 });
+
+function stopTest() {
+  if (!isRunning) return;
+  endTest();
+}
+
+function endTest() {
+  clearInterval(interval);
+  isRunning = false;
+  inputEl.disabled = true;
+
+  // Compute stats and display
+  const stats = computeStats(inputEl.value, currentQuote, timer);
+  wpmEl.textContent = stats.wpm;
+  accuracyEl.textContent = stats.accuracy;
+
+  if (startBtn) startBtn.disabled = false;
+  if (stopBtn) stopBtn.disabled = true;
+}
+
+function computeStats(userText, quoteText, elapsedSeconds) {
+  // Words typed is counted using spaces in the quote (target words)
+  const words = quoteText.trim().length ? quoteText.trim().split(/\s+/).length : 0;
+  const minutes = elapsedSeconds / 60;
+  const wpm = minutes > 0 ? Math.round(words / minutes) : 0;
+
+  const correctChars = getCorrectCharacters(userText, quoteText);
+  const accuracy = quoteText.length ? Math.round((correctChars / quoteText.length) * 100) : 0;
+
+  return {
+    wpm: isFinite(wpm) ? wpm : 0,
+    accuracy: Math.max(0, Math.min(100, accuracy))
+  };
+}
 
 function getCorrectCharacters(userInput, quote) {
   let correct = 0;

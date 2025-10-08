@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Your Typing Speed Test</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <div class="container">
@@ -20,8 +20,9 @@
     </div>
     
     <div class="buttons">
-      <button onclick="startTest()">Start</button>
-      <button onclick="resetTest()">Reset</button>
+      <button id="startBtn" onclick="startTest()">Start</button>
+      <button id="stopBtn" onclick="stopTest()" disabled>Stop</button>
+      <button id="resetBtn" onclick="resetTest()">Reset</button>
     </div>
   </div>
 
